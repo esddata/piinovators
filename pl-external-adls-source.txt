@@ -1,0 +1,198 @@
+{
+    name pl-external-adls-source,
+    objectId f76d9317-7d10-4f99-b5c0-bf7d22ed10dc,
+    properties {
+        activities [
+            {
+                name GetMetadata,
+                type GetMetadata,
+                dependsOn [],
+                policy {
+                    timeout 0.120000,
+                    retry 0,
+                    retryIntervalInSeconds 30,
+                    secureOutput false,
+                    secureInput false
+                },
+                typeProperties {
+                    fieldList [
+                        childItems,
+                        itemName
+                    ],
+                    datasetSettings {
+                        annotations [],
+                        type Binary,
+                        typeProperties {
+                            location {
+                                type AzureBlobFSLocation,
+                                fileSystem source
+                            }
+                        },
+                        externalReferences {
+                            connection a4692f0b-634b-4f1f-91c0-3519a6e94aba
+                        }
+                    },
+                    storeSettings {
+                        type AzureBlobFSReadSettings,
+                        enablePartitionDiscovery false
+                    },
+                    formatSettings {
+                        type BinaryReadSettings
+                    }
+                }
+            },
+            {
+                name ForEachFileName,
+                type ForEach,
+                dependsOn [
+                    {
+                        activity GetMetadata,
+                        dependencyConditions [
+                            Succeeded
+                        ]
+                    }
+                ],
+                typeProperties {
+                    items {
+                        value @activity('GetMetadata').output.childItems,
+                        type Expression
+                    },
+                    isSequential true,
+                    activities [
+                        {
+                            name varFileName,
+                            type SetVariable,
+                            dependsOn [],
+                            policy {
+                                secureOutput false,
+                                secureInput false
+                            },
+                            typeProperties {
+                                variableName vFileName,
+                                value {
+                                    value @replace(replace(item().name,'.csv',''),'.txt',''),
+                                    type Expression
+                                }
+                            }
+                        },
+                        {
+                            name Copy from external source,
+                            type Copy,
+                            dependsOn [
+                                {
+                                    activity varFileExtension,
+                                    dependencyConditions [
+                                        Succeeded
+                                    ]
+                                }
+                            ],
+                            policy {
+                                timeout 0.120000,
+                                retry 0,
+                                retryIntervalInSeconds 30,
+                                secureOutput false,
+                                secureInput false
+                            },
+                            typeProperties {
+                                source {
+                                    type BinarySource,
+                                    storeSettings {
+                                        type AzureBlobFSReadSettings,
+                                        recursive true
+                                    },
+                                    formatSettings {
+                                        type BinaryReadSettings
+                                    },
+                                    datasetSettings {
+                                        annotations [],
+                                        type Binary,
+                                        typeProperties {
+                                            location {
+                                                type AzureBlobFSLocation,
+                                                fileName {
+                                                    value @item().name,
+                                                    type Expression
+                                                },
+                                                fileSystem source
+                                            }
+                                        },
+                                        externalReferences {
+                                            connection a4692f0b-634b-4f1f-91c0-3519a6e94aba
+                                        }
+                                    }
+                                },
+                                sink {
+                                    type BinarySink,
+                                    storeSettings {
+                                        type LakehouseWriteSettings
+                                    },
+                                    datasetSettings {
+                                        annotations [],
+                                        linkedService {
+                                            name PIInovatorsLH,
+                                            properties {
+                                                annotations [],
+                                                type Lakehouse,
+                                                typeProperties {
+                                                    workspaceId 8917cd64-1bc0-4858-a527-045ba726753a,
+                                                    artifactId 52776468-6f4f-40e7-8534-dc45c02193d6,
+                                                    rootFolder Files
+                                                }
+                                            }
+                                        },
+                                        type Binary,
+                                        typeProperties {
+                                            location {
+                                                type LakehouseLocation,
+                                                fileName {
+                                                    value @concat(n    variables('vFileName'),n    '_',n    formatDateTime(utcnow(),'yyyy-MM-dd HHmmss.fff'),n    variables('vExtension')n    ),
+                                                    type Expression
+                                                },
+                                                folderPath bronzerawunprocessed
+                                            }
+                                        }
+                                    }
+                                },
+                                enableStaging false
+                            }
+                        },
+                        {
+                            name varFileExtension,
+                            type SetVariable,
+                            dependsOn [
+                                {
+                                    activity varFileName,
+                                    dependencyConditions [
+                                        Succeeded
+                                    ]
+                                }
+                            ],
+                            policy {
+                                secureOutput false,
+                                secureInput false
+                            },
+                            typeProperties {
+                                variableName vExtension,
+                                value {
+                                    value @replace(item().name, replace(replace(item().name,'.csv',''),'.txt',''),''),
+                                    type Expression
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        variables {
+            vFileName {
+                type String
+            },
+            vExtension {
+                type String
+            }
+        },
+        annotations [],
+        lastModifiedByObjectId 1d83a69b-1413-4625-8c02-5a3297f62785,
+        lastPublishTime 2024-02-20T165938Z
+    }
+}
