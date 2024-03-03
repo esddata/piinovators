@@ -24,10 +24,6 @@
 
 -- CELL ********************
 
- drop table documents
-
--- CELL ********************
-
 -- Metadata for the document
 CREATE TABLE documents (
     
@@ -42,10 +38,6 @@ LOCATION 'Files/silver/documents'
 
 -- CELL ********************
 
- drop table if exists clasiffication
-
--- CELL ********************
-
 --Store the response in json string format from prompt: "if this document is complaint or not"
 CREATE TABLE clasiffication (
     DocumentID string,
@@ -55,10 +47,6 @@ CREATE TABLE clasiffication (
 
 USING DELTA
 LOCATION 'Files/silver/clasiffication'
-
--- CELL ********************
-
- drop table if exists pii_data
 
 -- CELL ********************
 
@@ -75,10 +63,6 @@ LOCATION 'Files/silver/pii_data'
 
 -- CELL ********************
 
- drop table if exists category
-
--- CELL ********************
-
 --Store the response in json string format from prompt: "In which compliant category is the text in this image? Posible categories are:Product or service,Wait time". "Delivery,Personnel,Online,Continual,Communication. Return only one category.")
 CREATE TABLE category (
     DocumentID string,
@@ -88,10 +72,6 @@ CREATE TABLE category (
 
 USING DELTA
 LOCATION 'Files/silver/category'
-
--- CELL ********************
-
- drop table if exists subject
 
 -- CELL ********************
 
@@ -107,10 +87,6 @@ LOCATION 'Files/silver/subject'
 
 -- CELL ********************
 
- drop table if exists sender_data
-
--- CELL ********************
-
 --Store the response in json string format from prompt: "What is the subject of the text from the image? Return only subject."
 CREATE TABLE sender_data (
     DocumentID string,
@@ -120,10 +96,6 @@ CREATE TABLE sender_data (
 
 USING DELTA
 LOCATION 'Files/silver/sender_data'
-
--- CELL ********************
-
- drop table if exists document_analysis
 
 -- CELL ********************
 
@@ -137,10 +109,6 @@ CREATE TABLE document_analysis (
  
 USING DELTA
 LOCATION 'Files/gold/document_analysis'
-
--- CELL ********************
-
- drop table if exists sender_analysis
 
 -- CELL ********************
 
@@ -159,10 +127,6 @@ CREATE TABLE sender_analysis (
  
 USING DELTA
 LOCATION 'Files/gold/sender_analysis'
-
--- CELL ********************
-
- drop table if exists mask_pii_data
 
 -- CELL ********************
 

@@ -17,9 +17,12 @@
 # # PREPARE DATA FOR GOLD
 # ##### Preparing data according the schemas in the Delta tables in gold zone
 
+# MARKDOWN ********************
+
+# **_Function for checking column in DataFrame_**
+
 # CELL ********************
 
-#Function for checking column in DataFrame
 from pyspark.sql import DataFrame
 from pyspark.sql.functions import lit
 from pyspark.sql.utils import AnalysisException
@@ -31,9 +34,12 @@ def noColumn(df: DataFrame, path: str):
     except AnalysisException:
         return True
 
+# MARKDOWN ********************
+
+# **_Prepare data according the schema of sender_analysis table_**
+
 # CELL ********************
 
-#Prepare data according the schema of sender_analysis table
 from pyspark.sql import functions as F
 import json
 
@@ -121,9 +127,12 @@ array_cols = [  c[0]   for c in df_final.dtypes if c[1][:5] == "array"   ]
 if len (array_cols)==0:
     df_insert.write.format("delta").mode("append").saveAsTable("sender_analysis")
 
+# MARKDOWN ********************
+
+# **_Prepare data according the schema of document_analysis table_**
+
 # CELL ********************
 
-#Prepare data according the schema of document_analysis table
 df_class=spark.read.option("multiLine","true").load("Files/silver/clasiffication").filter(F.col("DocumentID") == DocumentID)
 
 df_category=spark.read.option("multiLine","true").load("Files/silver/category").filter(F.col("DocumentID") == DocumentID)

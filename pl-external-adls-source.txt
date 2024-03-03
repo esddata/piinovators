@@ -1,181 +1,827 @@
 {
-    name pl-external-adls-source,
-    objectId f76d9317-7d10-4f99-b5c0-bf7d22ed10dc,
-    properties {
-        activities [
+    "name": "pl-adls-external-source",
+    "objectId": "039c751a-42ed-4a36-83fc-2db05a59b835",
+    "properties": {
+        "activities": [
             {
-                name GetMetadata,
-                type GetMetadata,
-                dependsOn [],
-                policy {
-                    timeout 0.120000,
-                    retry 0,
-                    retryIntervalInSeconds 30,
-                    secureOutput false,
-                    secureInput false
+                "name": "Get Document Names",
+                "type": "GetMetadata",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
                 },
-                typeProperties {
-                    fieldList [
-                        childItems,
-                        itemName
+                "typeProperties": {
+                    "fieldList": [
+                        "childItems",
+                        "itemName"
                     ],
-                    datasetSettings {
-                        annotations [],
-                        type Binary,
-                        typeProperties {
-                            location {
-                                type AzureBlobFSLocation,
-                                fileSystem source
+                    "datasetSettings": {
+                        "annotations": [],
+                        "type": "Binary",
+                        "typeProperties": {
+                            "location": {
+                                "type": "AzureBlobFSLocation",
+                                "fileSystem": "source"
                             }
                         },
-                        externalReferences {
-                            connection a4692f0b-634b-4f1f-91c0-3519a6e94aba
+                        "externalReferences": {
+                            "connection": "9b10f54d-34e5-4d7c-a8ba-7b6cddd594ff"
                         }
                     },
-                    storeSettings {
-                        type AzureBlobFSReadSettings,
-                        enablePartitionDiscovery false
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
                     },
-                    formatSettings {
-                        type BinaryReadSettings
+                    "formatSettings": {
+                        "type": "BinaryReadSettings"
                     }
                 }
             },
             {
-                name ForEachFileName,
-                type ForEach,
-                dependsOn [
+                "name": "ForEachDocumentName",
+                "type": "ForEach",
+                "dependsOn": [
                     {
-                        activity GetMetadata,
-                        dependencyConditions [
-                            Succeeded
+                        "activity": "Get Document Names",
+                        "dependencyConditions": [
+                            "Succeeded"
                         ]
                     }
                 ],
-                typeProperties {
-                    items {
-                        value @activity('GetMetadata').output.childItems,
-                        type Expression
+                "typeProperties": {
+                    "items": {
+                        "value": "@activity('Get Document Names').output.childItems",
+                        "type": "Expression"
                     },
-                    isSequential true,
-                    activities [
+                    "isSequential": true,
+                    "activities": [
                         {
-                            name varFileName,
-                            type SetVariable,
-                            dependsOn [],
-                            policy {
-                                secureOutput false,
-                                secureInput false
+                            "name": "varDocumentName",
+                            "type": "SetVariable",
+                            "dependsOn": [],
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
                             },
-                            typeProperties {
-                                variableName vFileName,
-                                value {
-                                    value @replace(replace(item().name,'.csv',''),'.txt',''),
-                                    type Expression
+                            "typeProperties": {
+                                "variableName": "vDocumentName",
+                                "value": {
+                                    "value": "@replace(replace(replace(replace(replace(replace(item().name,'.csv',''),'.txt',''),'.pdf',''),'.jpg',''),'.png',''),'.jpeg','')",
+                                    "type": "Expression"
                                 }
                             }
                         },
                         {
-                            name Copy from external source,
-                            type Copy,
-                            dependsOn [
+                            "name": "Copy from External Source",
+                            "type": "Copy",
+                            "dependsOn": [
                                 {
-                                    activity varFileExtension,
-                                    dependencyConditions [
-                                        Succeeded
+                                    "activity": "VarBronzePathFileOrImage",
+                                    "dependencyConditions": [
+                                        "Succeeded"
                                     ]
                                 }
                             ],
-                            policy {
-                                timeout 0.120000,
-                                retry 0,
-                                retryIntervalInSeconds 30,
-                                secureOutput false,
-                                secureInput false
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
                             },
-                            typeProperties {
-                                source {
-                                    type BinarySource,
-                                    storeSettings {
-                                        type AzureBlobFSReadSettings,
-                                        recursive true
+                            "typeProperties": {
+                                "source": {
+                                    "type": "BinarySource",
+                                    "storeSettings": {
+                                        "type": "AzureBlobFSReadSettings",
+                                        "recursive": true
                                     },
-                                    formatSettings {
-                                        type BinaryReadSettings
+                                    "formatSettings": {
+                                        "type": "BinaryReadSettings"
                                     },
-                                    datasetSettings {
-                                        annotations [],
-                                        type Binary,
-                                        typeProperties {
-                                            location {
-                                                type AzureBlobFSLocation,
-                                                fileName {
-                                                    value @item().name,
-                                                    type Expression
+                                    "datasetSettings": {
+                                        "annotations": [],
+                                        "type": "Binary",
+                                        "typeProperties": {
+                                            "location": {
+                                                "type": "AzureBlobFSLocation",
+                                                "fileName": {
+                                                    "value": "@item().name",
+                                                    "type": "Expression"
                                                 },
-                                                fileSystem source
+                                                "fileSystem": "source"
                                             }
                                         },
-                                        externalReferences {
-                                            connection a4692f0b-634b-4f1f-91c0-3519a6e94aba
+                                        "externalReferences": {
+                                            "connection": "9b10f54d-34e5-4d7c-a8ba-7b6cddd594ff"
                                         }
                                     }
                                 },
-                                sink {
-                                    type BinarySink,
-                                    storeSettings {
-                                        type LakehouseWriteSettings
+                                "sink": {
+                                    "type": "BinarySink",
+                                    "storeSettings": {
+                                        "type": "LakehouseWriteSettings"
                                     },
-                                    datasetSettings {
-                                        annotations [],
-                                        linkedService {
-                                            name PIInovatorsLH,
-                                            properties {
-                                                annotations [],
-                                                type Lakehouse,
-                                                typeProperties {
-                                                    workspaceId 8917cd64-1bc0-4858-a527-045ba726753a,
-                                                    artifactId 52776468-6f4f-40e7-8534-dc45c02193d6,
-                                                    rootFolder Files
+                                    "datasetSettings": {
+                                        "annotations": [],
+                                        "linkedService": {
+                                            "name": "PIInovatorsLH",
+                                            "properties": {
+                                                "annotations": [],
+                                                "type": "Lakehouse",
+                                                "typeProperties": {
+                                                    "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                    "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                    "rootFolder": "Files"
                                                 }
                                             }
                                         },
-                                        type Binary,
-                                        typeProperties {
-                                            location {
-                                                type LakehouseLocation,
-                                                fileName {
-                                                    value @concat(n    variables('vFileName'),n    '_',n    formatDateTime(utcnow(),'yyyy-MM-dd HHmmss.fff'),n    variables('vExtension')n    ),
-                                                    type Expression
+                                        "type": "Binary",
+                                        "typeProperties": {
+                                            "location": {
+                                                "type": "LakehouseLocation",
+                                                "fileName": {
+                                                    "value": "@concat(variables('vDocumentNameFinal'), variables('vExtension'))",
+                                                    "type": "Expression"
                                                 },
-                                                folderPath bronzerawunprocessed
+                                                "folderPath": {
+                                                    "value": "@concat('bronze/raw/unprocessed/',variables('vBronzePath'))",
+                                                    "type": "Expression"
+                                                }
                                             }
                                         }
                                     }
                                 },
-                                enableStaging false
+                                "enableStaging": false
                             }
                         },
                         {
-                            name varFileExtension,
-                            type SetVariable,
-                            dependsOn [
+                            "name": "varDocumentExtension",
+                            "type": "SetVariable",
+                            "dependsOn": [
                                 {
-                                    activity varFileName,
-                                    dependencyConditions [
-                                        Succeeded
+                                    "activity": "varDocumentName",
+                                    "dependencyConditions": [
+                                        "Succeeded"
                                     ]
                                 }
                             ],
-                            policy {
-                                secureOutput false,
-                                secureInput false
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
                             },
-                            typeProperties {
-                                variableName vExtension,
-                                value {
-                                    value @replace(item().name, replace(replace(item().name,'.csv',''),'.txt',''),''),
-                                    type Expression
+                            "typeProperties": {
+                                "variableName": "vExtension",
+                                "value": {
+                                    "value": "@replace(item().name, replace(replace(replace(replace(replace(replace(item().name,'.csv',''),'.txt',''),'.pdf',''),'.jpg',''),'.png',''),'.jpeg',''),'')",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "varDocumentNameFinal",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "varDocumentExtension",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "variableName": "vDocumentNameFinal",
+                                "value": {
+                                    "value": "@concat(\n    variables('vDocumentName'),\n    '_',\n    formatDateTime(utcnow(),'yyyy-MM-ddTHH:mm:ss.fff')\n    )",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Check Extension",
+                            "type": "IfCondition",
+                            "dependsOn": [
+                                {
+                                    "activity": "Insert Document",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "typeProperties": {
+                                "expression": {
+                                    "value": "@or(equals(variables('vExtension'), '.csv'), equals(variables('vExtension'), '.txt'))",
+                                    "type": "Expression"
+                                },
+                                "ifFalseActivities": [
+                                    {
+                                        "name": "Analyse PII images",
+                                        "type": "TridentNotebook",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "typeProperties": {
+                                            "notebookId": "7a60db62-be70-487e-885a-5d6911fbdc81",
+                                            "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                            "parameters": {
+                                                "DocumentNameFinal": {
+                                                    "value": {
+                                                        "value": "@concat(variables('vDocumentNameFinal'), variables('vExtension'))",
+                                                        "type": "Expression"
+                                                    },
+                                                    "type": "string"
+                                                },
+                                                "DocumentID": {
+                                                    "value": {
+                                                        "value": "@variables('vDocumentId')",
+                                                        "type": "Expression"
+                                                    },
+                                                    "type": "string"
+                                                },
+                                                "UpdatedAt": {
+                                                    "value": {
+                                                        "value": "@utcnow()",
+                                                        "type": "Expression"
+                                                    },
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "Copy to Processed images",
+                                        "type": "Copy",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "Analyse PII images",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "typeProperties": {
+                                            "source": {
+                                                "type": "BinarySource",
+                                                "storeSettings": {
+                                                    "type": "LakehouseReadSettings",
+                                                    "recursive": true,
+                                                    "deleteFilesAfterCompletion": true
+                                                },
+                                                "formatSettings": {
+                                                    "type": "BinaryReadSettings"
+                                                },
+                                                "datasetSettings": {
+                                                    "annotations": [],
+                                                    "linkedService": {
+                                                        "name": "PIInovatorsLH",
+                                                        "properties": {
+                                                            "annotations": [],
+                                                            "type": "Lakehouse",
+                                                            "typeProperties": {
+                                                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                                "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                                "rootFolder": "Files"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "Binary",
+                                                    "typeProperties": {
+                                                        "location": {
+                                                            "type": "LakehouseLocation",
+                                                            "folderPath": {
+                                                                "value": "@concat('bronze/raw/unprocessed/',variables('vBronzePath'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "sink": {
+                                                "type": "BinarySink",
+                                                "storeSettings": {
+                                                    "type": "LakehouseWriteSettings"
+                                                },
+                                                "datasetSettings": {
+                                                    "annotations": [],
+                                                    "linkedService": {
+                                                        "name": "PIInovatorsLH",
+                                                        "properties": {
+                                                            "annotations": [],
+                                                            "type": "Lakehouse",
+                                                            "typeProperties": {
+                                                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                                "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                                "rootFolder": "Files"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "Binary",
+                                                    "typeProperties": {
+                                                        "location": {
+                                                            "type": "LakehouseLocation",
+                                                            "folderPath": {
+                                                                "value": "@concat('bronze/raw/processed/',variables('vBronzePath'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "enableStaging": false
+                                        }
+                                    },
+                                    {
+                                        "name": "Copy to Failed images",
+                                        "type": "Copy",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "Analyse PII images",
+                                                "dependencyConditions": [
+                                                    "Failed"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "typeProperties": {
+                                            "source": {
+                                                "type": "BinarySource",
+                                                "storeSettings": {
+                                                    "type": "LakehouseReadSettings",
+                                                    "recursive": true,
+                                                    "deleteFilesAfterCompletion": true
+                                                },
+                                                "formatSettings": {
+                                                    "type": "BinaryReadSettings"
+                                                },
+                                                "datasetSettings": {
+                                                    "annotations": [],
+                                                    "linkedService": {
+                                                        "name": "PIInovatorsLH",
+                                                        "properties": {
+                                                            "annotations": [],
+                                                            "type": "Lakehouse",
+                                                            "typeProperties": {
+                                                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                                "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                                "rootFolder": "Files"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "Binary",
+                                                    "typeProperties": {
+                                                        "location": {
+                                                            "type": "LakehouseLocation",
+                                                            "folderPath": {
+                                                                "value": "@concat('bronze/raw/unprocessed/',variables('vBronzePath'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "sink": {
+                                                "type": "BinarySink",
+                                                "storeSettings": {
+                                                    "type": "LakehouseWriteSettings"
+                                                },
+                                                "datasetSettings": {
+                                                    "annotations": [],
+                                                    "linkedService": {
+                                                        "name": "PIInovatorsLH",
+                                                        "properties": {
+                                                            "annotations": [],
+                                                            "type": "Lakehouse",
+                                                            "typeProperties": {
+                                                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                                "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                                "rootFolder": "Files"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "Binary",
+                                                    "typeProperties": {
+                                                        "location": {
+                                                            "type": "LakehouseLocation",
+                                                            "folderPath": {
+                                                                "value": "@concat('bronze/raw/failed/',variables('vBronzePath'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "enableStaging": false
+                                        }
+                                    },
+                                    {
+                                        "name": "Prepare Data for Gold Zone images",
+                                        "type": "TridentNotebook",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "Copy to Processed images",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "typeProperties": {
+                                            "notebookId": "1555aea2-ca10-4aac-b79a-f7345755cae6",
+                                            "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                            "parameters": {
+                                                "DocumentID": {
+                                                    "value": {
+                                                        "value": "@variables('vDocumentId')",
+                                                        "type": "Expression"
+                                                    },
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "ifTrueActivities": [
+                                    {
+                                        "name": "Analyse PII files",
+                                        "type": "TridentNotebook",
+                                        "dependsOn": [],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "typeProperties": {
+                                            "notebookId": "242dee31-6372-40fb-b65c-8edd8d0620a8",
+                                            "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                            "parameters": {
+                                                "DocumentNameFinal": {
+                                                    "value": {
+                                                        "value": "@concat(variables('vDocumentNameFinal'), variables('vExtension'))",
+                                                        "type": "Expression"
+                                                    },
+                                                    "type": "string"
+                                                },
+                                                "DocumentID": {
+                                                    "value": {
+                                                        "value": "@variables('vDocumentId')",
+                                                        "type": "Expression"
+                                                    },
+                                                    "type": "string"
+                                                },
+                                                "UpdatedAt": {
+                                                    "value": {
+                                                        "value": "@utcnow()",
+                                                        "type": "Expression"
+                                                    },
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "name": "Copy to Processed files",
+                                        "type": "Copy",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "Analyse PII files",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "typeProperties": {
+                                            "source": {
+                                                "type": "BinarySource",
+                                                "storeSettings": {
+                                                    "type": "LakehouseReadSettings",
+                                                    "recursive": true,
+                                                    "deleteFilesAfterCompletion": true
+                                                },
+                                                "formatSettings": {
+                                                    "type": "BinaryReadSettings"
+                                                },
+                                                "datasetSettings": {
+                                                    "annotations": [],
+                                                    "linkedService": {
+                                                        "name": "PIInovatorsLH",
+                                                        "properties": {
+                                                            "annotations": [],
+                                                            "type": "Lakehouse",
+                                                            "typeProperties": {
+                                                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                                "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                                "rootFolder": "Files"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "Binary",
+                                                    "typeProperties": {
+                                                        "location": {
+                                                            "type": "LakehouseLocation",
+                                                            "folderPath": {
+                                                                "value": "@concat('bronze/raw/unprocessed/',variables('vBronzePath'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "sink": {
+                                                "type": "BinarySink",
+                                                "storeSettings": {
+                                                    "type": "LakehouseWriteSettings"
+                                                },
+                                                "datasetSettings": {
+                                                    "annotations": [],
+                                                    "linkedService": {
+                                                        "name": "PIInovatorsLH",
+                                                        "properties": {
+                                                            "annotations": [],
+                                                            "type": "Lakehouse",
+                                                            "typeProperties": {
+                                                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                                "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                                "rootFolder": "Files"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "Binary",
+                                                    "typeProperties": {
+                                                        "location": {
+                                                            "type": "LakehouseLocation",
+                                                            "folderPath": {
+                                                                "value": "@concat('bronze/raw/processed/',variables('vBronzePath'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "enableStaging": false
+                                        }
+                                    },
+                                    {
+                                        "name": "Copy to Failed files",
+                                        "type": "Copy",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "Analyse PII files",
+                                                "dependencyConditions": [
+                                                    "Failed"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "typeProperties": {
+                                            "source": {
+                                                "type": "BinarySource",
+                                                "storeSettings": {
+                                                    "type": "LakehouseReadSettings",
+                                                    "recursive": true,
+                                                    "deleteFilesAfterCompletion": true
+                                                },
+                                                "formatSettings": {
+                                                    "type": "BinaryReadSettings"
+                                                },
+                                                "datasetSettings": {
+                                                    "annotations": [],
+                                                    "linkedService": {
+                                                        "name": "PIInovatorsLH",
+                                                        "properties": {
+                                                            "annotations": [],
+                                                            "type": "Lakehouse",
+                                                            "typeProperties": {
+                                                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                                "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                                "rootFolder": "Files"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "Binary",
+                                                    "typeProperties": {
+                                                        "location": {
+                                                            "type": "LakehouseLocation",
+                                                            "folderPath": {
+                                                                "value": "@concat('bronze/raw/unprocessed/',variables('vBronzePath'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "sink": {
+                                                "type": "BinarySink",
+                                                "storeSettings": {
+                                                    "type": "LakehouseWriteSettings"
+                                                },
+                                                "datasetSettings": {
+                                                    "annotations": [],
+                                                    "linkedService": {
+                                                        "name": "PIInovatorsLH",
+                                                        "properties": {
+                                                            "annotations": [],
+                                                            "type": "Lakehouse",
+                                                            "typeProperties": {
+                                                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                                                "artifactId": "52776468-6f4f-40e7-8534-dc45c02193d6",
+                                                                "rootFolder": "Files"
+                                                            }
+                                                        }
+                                                    },
+                                                    "type": "Binary",
+                                                    "typeProperties": {
+                                                        "location": {
+                                                            "type": "LakehouseLocation",
+                                                            "folderPath": {
+                                                                "value": "@concat('bronze/raw/failed/',variables('vBronzePath'))",
+                                                                "type": "Expression"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "enableStaging": false
+                                        }
+                                    },
+                                    {
+                                        "name": "Prepare Data for Gold Zone files",
+                                        "type": "TridentNotebook",
+                                        "dependsOn": [
+                                            {
+                                                "activity": "Copy to Processed files",
+                                                "dependencyConditions": [
+                                                    "Succeeded"
+                                                ]
+                                            }
+                                        ],
+                                        "policy": {
+                                            "timeout": "0.12:00:00",
+                                            "retry": 0,
+                                            "retryIntervalInSeconds": 30,
+                                            "secureOutput": false,
+                                            "secureInput": false
+                                        },
+                                        "typeProperties": {
+                                            "notebookId": "1555aea2-ca10-4aac-b79a-f7345755cae6",
+                                            "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                            "parameters": {
+                                                "DocumentID": {
+                                                    "value": {
+                                                        "value": "@variables('vDocumentId')",
+                                                        "type": "Expression"
+                                                    },
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": "Insert Document",
+                            "type": "TridentNotebook",
+                            "dependsOn": [
+                                {
+                                    "activity": "VarDocumentId",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "notebookId": "30c70c6b-507b-42a9-adae-5e2d7a3a7fa8",
+                                "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a",
+                                "parameters": {
+                                    "DocumentID": {
+                                        "value": {
+                                            "value": "@variables('vDocumentId')",
+                                            "type": "Expression"
+                                        },
+                                        "type": "string"
+                                    },
+                                    "DocumentPath": {
+                                        "value": {
+                                            "value": "@concat('bronze/raw/unprocessed/',\n    variables('vBronzePath'),\n    variables('vDocumentNameFinal'), \n    variables('vExtension')\n    )",
+                                            "type": "Expression"
+                                        },
+                                        "type": "string"
+                                    },
+                                    "DocumentExtension": {
+                                        "value": {
+                                            "value": "@variables('vExtension')",
+                                            "type": "Expression"
+                                        },
+                                        "type": "string"
+                                    },
+                                    "UpdatedAt": {
+                                        "value": {
+                                            "value": "@utcnow()",
+                                            "type": "Expression"
+                                        },
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "name": "VarDocumentId",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "Copy from External Source",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "variableName": "vDocumentId",
+                                "value": {
+                                    "value": "@guid()",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "VarBronzePathFileOrImage",
+                            "type": "SetVariable",
+                            "dependsOn": [
+                                {
+                                    "activity": "varDocumentNameFinal",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "variableName": "vBronzePath",
+                                "value": {
+                                    "value": "@if(or(equals(\n            variables('vExtension'),'.csv'), \n        equals(\n            variables('vExtension'),'.txt')\n        ),\n    'files',\n    'images'\n    )",
+                                    "type": "Expression"
                                 }
                             }
                         }
@@ -183,16 +829,28 @@
                 }
             }
         ],
-        variables {
-            vFileName {
-                type String
+        "variables": {
+            "vExtension": {
+                "type": "String"
             },
-            vExtension {
-                type String
+            "DocumentId": {
+                "type": "String"
+            },
+            "vDocumentId": {
+                "type": "String"
+            },
+            "vDocumentName": {
+                "type": "String"
+            },
+            "vDocumentNameFinal": {
+                "type": "String"
+            },
+            "vBronzePath": {
+                "type": "String"
             }
         },
-        annotations [],
-        lastModifiedByObjectId 1d83a69b-1413-4625-8c02-5a3297f62785,
-        lastPublishTime 2024-02-20T165938Z
+        "annotations": [],
+        "lastModifiedByObjectId": "1d83a69b-1413-4625-8c02-5a3297f62785",
+        "lastPublishTime": "2024-03-02T17:53:25Z"
     }
 }

@@ -13,6 +13,10 @@
 # META           "id": "52776468-6f4f-40e7-8534-dc45c02193d6"
 # META         }
 # META       ]
+# META     },
+# META     "environment": {
+# META       "environmentId": "53559c07-b5c1-4a02-b66e-aa0e7684ad14",
+# META       "workspaceId": "8917cd64-1bc0-4858-a527-045ba726753a"
 # META     }
 # META   }
 # META }
@@ -20,7 +24,7 @@
 # MARKDOWN ********************
 
 # # Ingestion data from image documents and PII analysis using OpenAI service
-# ##### using GPT4 version 1106-Preview to find PII data, classify if that image is a compliant or not, and do the categorization of the image
+# ##### using GPT4 version 1106-Preview to find PII data, classify if that image is a complaint or not, and do the categorization of the image
 
 # MARKDOWN ********************
 
@@ -58,14 +62,6 @@ check_openai_version()
 # MARKDOWN ********************
 
 # _**install needed libraries**_
-
-# CELL ********************
-
-%pip install easyocr
-
-# CELL ********************
-
-%pip install azure-cognitiveservices-vision-computervision
 
 # CELL ********************
 
@@ -110,6 +106,10 @@ openai.api_version = '2023-05-15' # this might change in the future
 
 model = "gpt-4-vision"
 
+# MARKDOWN ********************
+
+# _**Connecting computer-vision service using key vault secrets**_
+
 # CELL ********************
 
 VISION_KEYVAULT_ENDPOINT = "https://computer-vision-service.vault.azure.net/"
@@ -121,13 +121,17 @@ key=VISION_OPENAI_KEY
 endpoint = VISION_OPENAI_ENDPOINT
 
 
+# MARKDOWN ********************
+
+# _**Creates a client using the computer vision service given an endpoint**_
+
 # CELL ********************
 
 computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(key))
 
 # MARKDOWN ********************
 
-# _**definition gpt4V**_
+# _**definition gpt4V function which returns responses in JSON format**_
 
 # CELL ********************
 
@@ -169,6 +173,10 @@ def gpt4V(image_file, query):
     else:
         print("[ERROR] Error code:", response.status_code)
 
+# MARKDOWN ********************
+
+# _**definition gpt4V_array function which returns responses in array**_
+
 # CELL ********************
 
 def gpt4V_array(image_file, query):
@@ -209,13 +217,6 @@ def gpt4V_array(image_file, query):
     else:
         print("[ERROR] Error code:", response.status_code)
 
-# MARKDOWN ********************
-
-
-# MARKDOWN ********************
-
-# _**send the image path as parameter**_
-
 # CELL ********************
 
 from IPython.display import Image
@@ -231,6 +232,7 @@ Image(filename=imagefile)
 #prompt (needed for document clasiffication is complaint or not)
 time.sleep(60)
 result = gpt4V(imagefile, "Is this document a complaint or not? Answer only with yes or no.")
+print(result)
 
 time.sleep(40)
 columns=["DocumentID","response","UpdatedAt"]
@@ -238,7 +240,7 @@ spark.createDataFrame([(DocumentID, result, UpdatedAt)],columns).write.format("d
 
 spark.sql("UPDATE PIInovatorsLH.clasiffication  set response=REPLACE(REPLACE(response,'```json',''),'```','') WHERE DocumentID={parDocumentID}",parDocumentID = DocumentID)
 
-print(result)
+
 
 # CELL ********************
 
@@ -254,7 +256,7 @@ spark.createDataFrame([(DocumentID, result, UpdatedAt)],columns).write.format("d
 
 # CELL ********************
 
-#"Wprompt (needed to return senders PII data)
+#prompt (needed to return senders PII data)
 time.sleep(60)
 result = gpt4V(imagefile, "Who is the sender and from which town and country and which is sender's mail and phone?")
 
@@ -270,7 +272,7 @@ print(result)
 
 #prompt (needed to categorized the complaint)"
 time.sleep(60)
-result = gpt4V(imagefile, "In which compliant category is the text in this image? Posible categories are:Product or service,Wait time"
+result = gpt4V(imagefile, "In which complaint category is the text in this image? Posible categories are:Product or service,Wait time"
 "Delivery,Personnel,Online,Continual,Communication. Return only one category.")
 
 time.sleep(40)
@@ -283,7 +285,7 @@ print(result)
 
 # CELL ********************
 
-#prompt (needed to extract the subject of compliant)
+#prompt (needed to extract the subject of complaint)
 time.sleep(60)
 result = gpt4V(imagefile, "What is the subject of the text from the image? Return only subject.")
 time.sleep(40)
@@ -300,6 +302,7 @@ print(result)
 
 # CELL ********************
 
+#prompt (mask the extracted PII data)
 time.sleep(100)
 result = gpt4V(imagefile, " What are the Personally identifiable information of the sender only in this text ?\
 Return the same text with masked PII data (Masked PII data means display only the first char of all of the Personally \
@@ -313,12 +316,17 @@ print(result)
 
 # CELL ********************
 
+#prompt (extract the PII data in an array)
 time.sleep(90)
 result = gpt4V_array(imagefile, "What are the Personally identifiable information of the sender in this image?\
 Return them in an array including any punctuation marks which come after them in the text.")
 text_from_image= result
 
 print (result)
+
+# MARKDOWN ********************
+
+# **_**Using Azure computer vision service for OCR and OpenCv library for bluring the PII data in the image **_**
 
 # CELL ********************
 
@@ -336,6 +344,8 @@ subscription_key = key
 computervision_client = ComputerVisionClient(endpoint, CognitiveServicesCredentials(subscription_key))
 
 # Open local image file
+
+imagefile = f"/lakehouse/default/Files/bronze/raw/unprocessed/images/{DocumentNameFinal}"
 image_path = imagefile
 image = open(image_path, "rb")
 img = Image.open(image_path)
