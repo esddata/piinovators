@@ -1,0 +1,4 @@
+dependencies:
+  - pip:
+      - azure-cognitiveservices-vision-computervision==0.9.0
+      - easyocr==1.7.1
